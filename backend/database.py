@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 
 # --- SIMPLE MYSQL CONFIG ---
 MYSQL_USER = "root"
-MYSQL_PASSWORD = "Wasdopkl#123"   # <-- put your MySQL password here
+MYSQL_PASSWORD = "Password"   # <-- put your MySQL password here
 MYSQL_HOST = "localhost"
 MYSQL_DB = "scheduling_app"
 
@@ -18,3 +18,4 @@ engine = create_engine(
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 Base = declarative_base()
+
