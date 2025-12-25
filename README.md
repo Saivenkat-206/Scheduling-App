@@ -14,16 +14,18 @@ Navigate to the project directory:
   cd Scheduling-App
 ```
 
-2. Navigate to the backend folder
+2. Navigate to the backend folder.
 3. Run:
    ```bash
       pip install -r requirements.txt
    ```
-4. To run backend:
+4. Connect your MYSQL Database to the app.
+5. In Database.py file, enter the credentials of MYSQL.
+5. To run backend:
   ```bash
      uvicorn app.main:app --reload
   ```
-5. Navigate to frontend folder
+6. Navigate to frontend folder.
    ```bash
      cd frontend
    ```
@@ -33,5 +35,8 @@ Navigate to the project directory:
      npm install @material-ui/core
      npm install @material-ui/icons
    ```
-
-This will make the app run on your local machine
+8. Run the fronend:
+   ```
+     npm run dev
+   ```
+This will make the app run on your local machine.
