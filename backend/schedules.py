@@ -89,6 +89,8 @@ from fastapi.responses import StreamingResponse
 from io import BytesIO
 import math
 from datetime import date
+from app.permissions import get_current_user, is_allowed, Action
+from app.models import User
 
 def is_future_date(d: date | None) -> bool:
     if not d:
@@ -178,7 +180,10 @@ class OpenTableReq(BaseModel):
     year: str
 
 @router.post("/open_table")
-def open_table(req: OpenTableReq, db: Session = Depends(get_db)):
+def open_table(req: OpenTableReq, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if not is_allowed(current_user, Action.VIEW, req.sheet_type):
+        raise HTTPException(status_code=403, detail="Not authorized to view this table")
+    
     table_name = f"{req.sheet_type.lower()}_{req.month.zfill(2)}_{req.year[-2:]}"
     sheet_type = infer_sheet_type(table_name)
     print(f"[OPEN TABLE] {table_name}, SheetType={sheet_type}")
@@ -205,7 +210,10 @@ def open_table(req: OpenTableReq, db: Session = Depends(get_db)):
 # =========================
 
 @router.post("/rows/{table_name}")
-def create_row(table_name: str, payload: dict, db: Session = Depends(get_db)):
+def create_row(table_name: str, payload: dict, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if not is_allowed(current_user, Action.ADD, table_name):
+        raise HTTPException(status_code=403, detail="Not authorized to add rows")
+    
     sheet_type = infer_sheet_type(table_name)
     Model = get_table_class(table_name, sheet_type)
 
@@ -260,7 +268,10 @@ def create_row(table_name: str, payload: dict, db: Session = Depends(get_db)):
     return {"created": True, "id": obj.id, "warnings": warnings}
 
 @router.put("/rows/{table_name}/{row_id}")
-def update_row(table_name: str, row_id: int, payload: dict, db: Session = Depends(get_db)):
+def update_row(table_name: str, row_id: int, payload: dict, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if not is_allowed(current_user, Action.EDIT, table_name):
+        raise HTTPException(status_code=403, detail="Not authorized to edit rows")
+    
     sheet_type = infer_sheet_type(table_name)
     Model = get_table_class(table_name, sheet_type)
     obj = db.query(Model).filter(Model.id == row_id).first()
@@ -289,7 +300,10 @@ def update_row(table_name: str, row_id: int, payload: dict, db: Session = Depend
     return {"updated": True, "id": obj.id, "warnings": warnings}
 
 @router.delete("/rows/{table_name}/{row_id}")
-def delete_row(table_name: str, row_id: int, db: Session = Depends(get_db)):
+def delete_row(table_name: str, row_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if not is_allowed(current_user, Action.DELETE, table_name):
+        raise HTTPException(status_code=403, detail="Not authorized to delete rows")
+    
     sheet_type = infer_sheet_type(table_name)
     Model = get_table_class(table_name, sheet_type)
     obj = db.query(Model).filter(Model.id == row_id).first()
@@ -306,7 +320,12 @@ def delete_row(table_name: str, row_id: int, db: Session = Depends(get_db)):
 # =========================
 
 @router.get("/export/{table_name}")
-def export_table(table_name: str, db: Session = Depends(get_db)):
+def export_table(table_name: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if not is_allowed(current_user, Action.EXPORT, table_name):
+        raise HTTPException(status_code=403, detail="Not authorized to export")
+    
+    sheet_type = infer_sheet_type(table_name)
+    Model = get_table_class(table_name, sheet_type)
     sheet_type = infer_sheet_type(table_name)
     Model = get_table_class(table_name, sheet_type)
     rows = db.query(Model).all()
@@ -367,7 +386,11 @@ def import_table(
     table_name: str,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
+    if not is_allowed(current_user, Action.IMPORT, table_name):
+        raise HTTPException(status_code=403, detail="Not authorized to import")
+    
     sheet_type = infer_sheet_type(table_name)
     print(f"[IMPORT] Table={table_name}, SheetType={sheet_type}, File={file.filename}")
 
@@ -444,7 +467,10 @@ def import_table(
     return {"imported_rows": inserted}
 
 @router.get("/rows/{table_name}")
-def list_rows(table_name: str, db: Session = Depends(get_db)):
+def list_rows(table_name: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if not is_allowed(current_user, Action.VIEW, table_name):
+        raise HTTPException(status_code=403, detail="Not authorized to view this table")
+    
     Model = get_table_class(table_name, "us_llc")
     rows = db.query(Model).limit(5000).all()
 
