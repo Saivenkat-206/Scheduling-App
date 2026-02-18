@@ -6,3 +6,5 @@ openpyxl
 python-multipart
 python-dotenv
 pydantic-settings
+bcrypt
+PyJWT
