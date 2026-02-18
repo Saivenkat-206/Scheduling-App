@@ -4,17 +4,17 @@ import api from "../api/client";
 import "../styles/App.css";
 
 export default function LoginPage({ setToken }) {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
   async function handleLogin() {
     try {
-      const res = await api.post("/auth/login", { username, password });
+      const res = await api.post("/auth/login", { email, password });
       localStorage.setItem("token", res.data.token);
       setToken(res.data.token);
-      navigate("/select"); // 🔥 THIS WAS THE MISSING PIECE
-    } catch {
+      navigate("/select"); 
+    } catch (err) {
       alert("Invalid credentials");
     }
   }
@@ -26,9 +26,9 @@ export default function LoginPage({ setToken }) {
 
         <input
           className="input"
-          placeholder="Username"
-          value={username}
-          onChange={e => setUsername(e.target.value)}
+          placeholder="Email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
         />
 
         <input
