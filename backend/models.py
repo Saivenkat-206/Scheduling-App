@@ -1,5 +1,19 @@
-from sqlalchemy import Column, Integer, String, Numeric, Date, Text
+from sqlalchemy import Column, Integer, String, Numeric, Date, Text, Enum as SQLEnum
 from app.database import Base
+import enum
+
+class UserType(enum.Enum):
+    SUPERUSER = "superuser"
+    SUBUSER = "subuser"
+    VIEWER = "viewer"
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True)
+    email = Column(String(255), unique=True, nullable=False)
+    password_hash = Column(String(255), nullable=False)
+    user_type = Column(SQLEnum(UserType), nullable=False)
 
 # GROUP A
 class GroupABase(Base):
